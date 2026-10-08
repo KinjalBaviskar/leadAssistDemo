@@ -1,0 +1,4 @@
+.venv/
+.env
+leadassist.db
+__pycache__/

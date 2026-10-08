@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeadAssist · AI Lead Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: { extend: {
+      fontFamily: { sans: ["IBM Plex Sans", "ui-sans-serif", "system-ui"] },
+      colors: { brand: { 50:"#f3f6f9",100:"#e4eaf1",200:"#c8d4e2",300:"#9fb3ca",400:"#6b87a8",500:"#47668c",600:"#2f4f75",700:"#243f5f",800:"#1d334d",900:"#172840" } },
+      boxShadow: { soft: "0 1px 2px rgba(16,24,40,.05)" },
+      keyframes: { fadeUp: { "0%": { opacity: 0, transform: "translateY(2px)" }, "100%": { opacity: 1, transform: "none" } } },
+      animation: { fadeUp: "fadeUp .2s ease-out both" },
+    } },
+  };
+  // Light by default; dark only when the user explicitly chose it with the Theme button.
+  if (localStorage.getItem("la_theme_pref") === "dark") document.documentElement.classList.add("dark");
+</script>
+<style>
+  body { font-variant-numeric: tabular-nums; }
+  .prose-proposal h1 { font-size: 1.5rem; font-weight: 800; margin: .2rem 0 1rem; }
+  .prose-proposal h2 { font-size: 1.1rem; font-weight: 700; margin: 1.6rem 0 .6rem; padding-bottom: .35rem; border-bottom: 1px solid rgb(148 163 184 / .3); }
+  .prose-proposal h3 { font-weight: 600; margin: 1rem 0 .4rem; }
+  .prose-proposal p { margin: .5rem 0; line-height: 1.7; }
+  .prose-proposal ul { list-style: disc; padding-left: 1.4rem; margin: .5rem 0; } .prose-proposal ol { list-style: decimal; padding-left: 1.4rem; }
+  .prose-proposal li { margin: .25rem 0; }
+  .prose-proposal table { width: 100%; border-collapse: collapse; margin: .75rem 0; font-size: .9rem; }
+  .prose-proposal th, .prose-proposal td { border: 1px solid rgb(148 163 184 / .35); padding: .45rem .6rem; text-align: left; }
+  .prose-proposal th { background: rgb(99 102 241 / .08); }
+  .scrollbar-thin::-webkit-scrollbar { width: 6px; } .scrollbar-thin::-webkit-scrollbar-thumb { background: rgb(148 163 184 / .4); border-radius: 9999px; }
+  .ring-track { stroke: rgb(148 163 184 / .2); }
+  .dropzone.drag { border-color: #6366f1; background: rgb(99 102 241 / .06); }
+</style>
+</head>
+<body class="h-full bg-zinc-50 text-zinc-800 antialiased dark:bg-zinc-950 dark:text-zinc-200">
+
+<!-- =========================== AUTH =========================== -->
+<div id="authView" class="hidden"><div class="min-h-screen lg:grid lg:grid-cols-2">
+  <div class="relative hidden min-h-screen border-r border-zinc-200 bg-zinc-50 p-12 text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 lg:flex lg:flex-col lg:justify-between">
+    <div class="relative flex items-center gap-3">
+      <div class="grid h-9 w-9 place-items-center rounded-md bg-zinc-900 text-sm font-bold text-white dark:bg-white dark:text-zinc-900">LA</div>
+      <span class="text-xl font-bold tracking-tight">LeadAssist</span>
+    </div>
+    <div class="relative max-w-md">
+      <h1 class="text-3xl font-semibold leading-snug">Requirement documents in. Estimates and decisions out.</h1>
+      <p class="mt-4 text-zinc-600 dark:text-zinc-400">Clients upload their brief. AI extracts the scope, estimates cost and timeline, scores feasibility and recommends what to pursue. Your team approves with one click.</p>
+      <div class="mt-10 space-y-4">
+        <div class="flex items-start gap-3"><span class="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-md border border-zinc-300 bg-white text-zinc-700 dark:border-zinc-700 dark:bg-transparent dark:text-zinc-300" data-icon="file"></span><div><p class="font-semibold">Document intelligence</p><p class="text-sm text-zinc-600 dark:text-zinc-400">PDF, DOCX and text briefs read and structured automatically.</p></div></div>
+        <div class="flex items-start gap-3"><span class="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-md border border-zinc-300 bg-white text-zinc-700 dark:border-zinc-700 dark:bg-transparent dark:text-zinc-300" data-icon="rupee"></span><div><p class="font-semibold">Instant estimates</p><p class="text-sm text-zinc-600 dark:text-zinc-400">Cost, effort, team and timeline from a transparent model.</p></div></div>
+        <div class="flex items-start gap-3"><span class="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-md border border-zinc-300 bg-white text-zinc-700 dark:border-zinc-700 dark:bg-transparent dark:text-zinc-300" data-icon="shield"></span><div><p class="font-semibold">Explainable recommendations</p><p class="text-sm text-zinc-600 dark:text-zinc-400">Feasibility, risk and profitability with the reasoning shown.</p></div></div>
+      </div>
+    </div>
+    <div class="h-9"></div>
+  </div>
+
+  <div class="flex min-h-screen items-center justify-center bg-white px-6 py-12 dark:bg-zinc-950 sm:px-12">
+    <div class="w-full max-w-md animate-fadeUp">
+      <div class="mb-8 flex items-center gap-3 lg:hidden">
+        <div class="grid h-9 w-9 place-items-center rounded-md bg-zinc-900 text-sm font-bold text-white dark:bg-white dark:text-zinc-900">LA</div>
+        <span class="text-xl font-bold">LeadAssist</span>
+      </div>
+      <h2 id="authTitle" class="text-xl font-semibold">Welcome back</h2>
+      <p id="authSub" class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Sign in to your workspace.</p>
+
+      <div class="mt-6 grid grid-cols-2 rounded-md bg-zinc-100 p-1 text-sm font-medium dark:bg-zinc-800/70">
+        <button id="tabLogin" onclick="authTab('login')" class="rounded-lg py-2 transition">Sign in</button>
+        <button id="tabReg" onclick="authTab('register')" class="rounded-lg py-2 transition">Client sign up</button>
+      </div>
+
+      <form id="loginForm" class="mt-6 space-y-4" onsubmit="event.preventDefault(); login()">
+        <div><label class="mb-1.5 block text-sm font-medium" for="lEmail">Email</label>
+          <input id="lEmail" type="email" required autocomplete="username" class="input" placeholder="you@company.com"></div>
+        <div><label class="mb-1.5 block text-sm font-medium" for="lPass">Password</label>
+          <input id="lPass" type="password" required autocomplete="current-password" class="input" placeholder="••••••••"></div>
+        <button id="loginBtn" class="btn-primary w-full">Sign in</button>
+        <div class="rounded-md border border-dashed border-zinc-300 p-4 dark:border-zinc-700">
+          <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Demo accounts</p>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="demo('company')" class="btn-ghost justify-start text-left"><span data-icon="building"></span><span><b class="block text-sm">Company</b><span class="text-xs text-zinc-500">Review & approve</span></span></button>
+            <button type="button" onclick="demo('client')" class="btn-ghost justify-start text-left"><span data-icon="user"></span><span><b class="block text-sm">Client</b><span class="text-xs text-zinc-500">Get estimates</span></span></button>
+          </div>
+        </div>
+      </form>
+
+      <form id="regForm" class="mt-6 hidden space-y-4" onsubmit="event.preventDefault(); register()">
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="mb-1.5 block text-sm font-medium" for="rName">Your name</label><input id="rName" required class="input"></div>
+          <div><label class="mb-1.5 block text-sm font-medium" for="rCompany">Company</label><input id="rCompany" required class="input"></div>
+        </div>
+        <div><label class="mb-1.5 block text-sm font-medium" for="rEmail">Work email</label><input id="rEmail" type="email" required class="input"></div>
+        <div><label class="mb-1.5 block text-sm font-medium" for="rPass">Password</label><input id="rPass" type="password" minlength="6" required class="input" placeholder="At least 6 characters"></div>
+        <button id="regBtn" class="btn-primary w-full">Create client account</button>
+      </form>
+      <div id="authErr" class="mt-4"></div>
+    </div>
+  </div>
+</div>
+
+</div>
+<!-- =========================== APP SHELL =========================== -->
+<div id="appView" class="hidden min-h-full">
+  <aside class="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 lg:flex">
+    <div class="flex h-16 items-center gap-3 px-6">
+      <div class="grid h-8 w-8 place-items-center rounded-md bg-zinc-900 text-xs font-bold text-white dark:bg-white dark:text-zinc-900">LA</div>
+      <div><p class="font-bold leading-none tracking-tight">LeadAssist</p><p id="portalName" class="mt-1 text-xs text-zinc-500"></p></div>
+    </div>
+    <nav id="nav" class="mt-4 flex-1 space-y-1 px-3"></nav>
+    <div class="m-3 rounded-md border border-zinc-200 p-3 dark:border-zinc-800">
+      <div class="flex items-center gap-3">
+        <div id="avatar" class="grid h-9 w-9 place-items-center rounded-full bg-brand-100 text-sm font-bold text-brand-700 dark:bg-brand-900/60 dark:text-zinc-500"></div>
+        <div class="min-w-0 flex-1"><p id="meName" class="truncate text-sm font-semibold"></p><p id="meCompany" class="truncate text-xs text-zinc-500"></p></div>
+      </div>
+      <div class="mt-3 flex gap-2">
+        <button onclick="toggleTheme()" class="btn-ghost flex-1 py-1.5 text-xs" title="Toggle theme"><span data-icon="moon"></span>Theme</button>
+        <button onclick="logout()" class="btn-ghost flex-1 py-1.5 text-xs"><span data-icon="logout"></span>Log out</button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="lg:pl-64">
+    <header class="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-zinc-200 bg-white/80 px-4 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/80 sm:px-8">
+      <div class="min-w-0 flex-1">
+        <p id="crumb" class="text-xs font-medium text-zinc-500"></p>
+        <h1 id="pageTitle" class="truncate text-lg font-bold tracking-tight"></h1>
+      </div>
+      <span id="aiPill" class="hidden"></span>
+      <button onclick="go('upload')" class="btn-primary hidden sm:inline-flex"><span data-icon="upload"></span><span id="newBtnLabel">New analysis</span></button>
+      <div class="flex gap-1 lg:hidden"><button onclick="toggleTheme()" class="btn-ghost px-2.5"><span data-icon="moon"></span></button><button onclick="logout()" class="btn-ghost px-2.5"><span data-icon="logout"></span></button></div>
+    </header>
+    <nav id="mobileNav" class="sticky top-16 z-10 flex gap-1 overflow-x-auto border-b border-zinc-200 bg-white px-4 py-2 dark:border-zinc-800 dark:bg-zinc-900 lg:hidden"></nav>
+    <main id="main" class="mx-auto max-w-7xl p-4 sm:p-8"></main>
+  </div>
+</div>
+
+<!-- =========================== ANALYSIS PROGRESS =========================== -->
+<div id="progress" class="fixed inset-0 z-50 hidden place-items-center bg-zinc-950/50 p-4 backdrop-blur-sm">
+  <div class="w-full max-w-md animate-fadeUp rounded-lg bg-white p-8 shadow-lg dark:bg-zinc-900">
+    <div class="mx-auto grid h-12 w-12 place-items-center rounded-md border border-zinc-200 text-brand-700 dark:border-zinc-700 dark:text-brand-300">
+      <svg class="h-6 w-6 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".25" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+    </div>
+    <h3 class="mt-4 text-center text-base font-semibold">Analysing documents</h3>
+    <p class="mt-1 text-center text-sm text-zinc-500">This usually takes 10–30 seconds.</p>
+    <ol id="progressSteps" class="mt-6 space-y-3"></ol>
+  </div>
+</div>
+
+<div id="toasts" class="fixed bottom-4 right-4 z-[60] space-y-2"></div>
+
+<script>
+/* ============================== utilities ============================== */
+const ICONS = {
+  sparkles: '<rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/>',
+  grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  upload: '<path d="M12 16V4m0 0l-4 4m4-4l4 4"/><path d="M20 16.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1.5"/>',
+  folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  file: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
+  logout: '<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H3"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+  check: '<path d="M20 6L9 17l-5-5"/>', x: '<path d="M18 6L6 18M6 6l12 12"/>',
+  message: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  users: '<path d="M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1"/><circle cx="9" cy="7" r="4"/><path d="M22 19v-1a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+  rupee: '<path d="M6 3h12M6 8h12M6 13h3a5 5 0 0 0 0-10M6 13l8.5 8"/>',
+  alert: '<path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+  shield: '<path d="M12 3l8 3v6c0 5-3.4 8.5-8 9-4.6-.5-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  building: '<path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M16 9h2a2 2 0 0 1 2 2v10M3 21h18M8 7h4M8 11h4M8 15h4"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>',
+  layers: '<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',
+  trend: '<path d="M3 17l6-6 4 4 8-8M15 7h6v6"/>',
+  download: '<path d="M12 4v12m0 0l-4-4m4 4l4-4"/><path d="M4 18v1a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1"/>',
+  send: '<path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/>',
+  arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>', back: '<path d="M19 12H5M11 18l-6-6 6-6"/>',
+  inbox: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',
+  calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  question: '<circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>',
+  plug: '<path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4"/>',
+};
+const icon = (name, cls = "h-4 w-4") => `<svg class="${cls} shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[name] || ""}</svg>`;
+const hydrateIcons = (root = document) => root.querySelectorAll("[data-icon]").forEach(el => {
+  if (!el.dataset.done) { el.insertAdjacentHTML("afterbegin", icon(el.dataset.icon, el.dataset.size || "h-4 w-4")); el.dataset.done = 1; }
+});
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const inr = (n) => n == null ? "—" : "₹" + Math.round(n).toLocaleString("en-IN");
+const inrShort = (n) => n == null ? "—" : n >= 1e7 ? `₹${(n / 1e7).toFixed(2)} Cr` : n >= 1e5 ? `₹${(n / 1e5).toFixed(1)} L` : inr(n);
+const pretty = (s) => String(s || "").replaceAll("_", " ").toLowerCase().replace(/^\w/, c => c.toUpperCase());
+const ago = (iso) => { const s = (Date.now() - new Date(iso)) / 1000; return s < 60 ? "just now" : s < 3600 ? `${Math.floor(s / 60)}m ago` : s < 86400 ? `${Math.floor(s / 3600)}h ago` : new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" }); };
+const initials = (n) => String(n || "?").split(/\s+/).map(p => p[0]).slice(0, 2).join("").toUpperCase();
+
+const TONE = {
+  PRIORITIZE: "emerald", APPROVED: "emerald", LOW: "emerald",
+  PURSUE_WITH_CONDITIONS: "amber", PENDING: "amber", PENDING_REVIEW: "amber", MEDIUM: "amber",
+  REVIEW: "orange", HIGH: "orange", DEPRIORITIZE: "rose", REJECTED: "rose", CRITICAL: "rose",
+  low: "emerald", medium: "amber", high: "rose",
+};
+const TONE_CLS = {
+  emerald: "bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/20",
+  amber: "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-400/20",
+  orange: "bg-orange-50 text-orange-700 ring-orange-600/20 dark:bg-orange-500/10 dark:text-orange-300 dark:ring-orange-400/20",
+  rose: "bg-rose-50 text-rose-700 ring-rose-600/20 dark:bg-rose-500/10 dark:text-rose-300 dark:ring-rose-400/20",
+  slate: "bg-zinc-100 text-zinc-700 ring-zinc-500/20 dark:bg-zinc-800 dark:text-zinc-300 dark:ring-zinc-400/20",
+  brand: "bg-brand-50 text-brand-700 ring-brand-600/20 dark:bg-brand-500/10 dark:text-brand-300 dark:ring-brand-400/20",
+};
+const STATUS_LABEL = { PENDING_REVIEW: "In review", APPROVED: "Approved", REJECTED: "Rejected" };
+const badge = (value, text) => `<span class="inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${TONE_CLS[TONE[value] || "slate"]}">${esc(text || STATUS_LABEL[value] || pretty(value))}</span>`;
+const scoreColor = (v) => v >= 70 ? "#2f7d4f" : v >= 50 ? "#b7791f" : v >= 35 ? "#c05621" : "#b83232";
+function ring(value, size = 72, stroke = 7, labelCls = "text-lg") {
+  const r = (size - stroke) / 2, c = 2 * Math.PI * r, v = Math.max(0, Math.min(100, Number(value) || 0));
+  return `<div class="relative shrink-0" style="width:${size}px;height:${size}px">
+    <svg width="${size}" height="${size}" class="-rotate-90"><circle class="ring-track" cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke-width="${stroke}"/>
+    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${scoreColor(v)}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - v / 100)}" style="transition:stroke-dashoffset .8s ease"/></svg>
+    <span class="absolute inset-0 grid place-items-center font-bold ${labelCls}">${Math.round(v)}</span></div>`;
+}
+const bar = (v) => `<div class="h-2 w-full overflow-hidden rounded-full bg-zinc-200/70 dark:bg-zinc-800"><div class="h-full rounded-full transition-all duration-700" style="width:${Math.max(0, Math.min(100, v))}%;background:${scoreColor(v)}"></div></div>`;
+const card = (inner, cls = "") => `<section class="rounded-lg border border-zinc-200 bg-white p-6 shadow-soft dark:border-zinc-800 dark:bg-zinc-900 ${cls}">${inner}</section>`;
+const cardTitle = (title, ic, extra = "") => `<div class="mb-4 flex items-center justify-between gap-3"><h3 class="flex items-center gap-2 font-semibold">${ic ? `<span class="grid h-7 w-7 place-items-center rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-300">${icon(ic)}</span>` : ""}${esc(title)}</h3>${extra}</div>`;
+const empty = (ic, title, text, action = "") => `<div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-zinc-300 px-6 py-16 text-center dark:border-zinc-700">
+  <div class="grid h-14 w-14 place-items-center rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-300">${icon(ic, "h-7 w-7")}</div>
+  <h3 class="mt-4 font-semibold">${esc(title)}</h3><p class="mt-1 max-w-sm text-sm text-zinc-500">${esc(text)}</p>${action}</div>`;
+const chips = (items, tone = "slate") => items && items.length ? `<div class="flex flex-wrap gap-2">${items.map(i => `<span class="rounded-lg px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${TONE_CLS[tone]}">${esc(i)}</span>`).join("")}</div>` : `<p class="text-sm text-zinc-400">None identified</p>`;
+
+function toast(message, kind = "success") {
+  const el = document.createElement("div");
+  const tone = kind === "error" ? "text-rose-600" : "text-emerald-600";
+  el.className = "flex max-w-sm animate-fadeUp items-start gap-3 rounded-md border border-zinc-200 bg-white px-4 py-3 text-sm shadow-xl dark:border-zinc-700 dark:bg-zinc-900";
+  el.innerHTML = `<span class="${tone} mt-0.5">${icon(kind === "error" ? "alert" : "check")}</span><span>${esc(message)}</span>`;
+  $("toasts").appendChild(el);
+  setTimeout(() => { el.style.transition = "opacity .3s"; el.style.opacity = 0; setTimeout(() => el.remove(), 300); }, 4200);
+}
+function toggleTheme() {
+  const dark = document.documentElement.classList.toggle("dark");
+  localStorage.setItem("la_theme_pref", dark ? "dark" : "light");
+}
+
+/* ============================== API ============================== */
+let token = localStorage.getItem("la_token"), me = null, leads = [], route = { page: "home" }, current = null, aiModel = "";
+const isCompany = () => me?.role === "company";
+async function api(path, opts = {}) {
+  const headers = { ...(opts.body instanceof FormData ? {} : { "Content-Type": "application/json" }), ...(token ? { Authorization: "Bearer " + token } : {}) };
+  const res = await fetch(path, { ...opts, headers });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && me) { logout(); throw new Error("Your session has expired. Please sign in again."); }
+  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : data.detail ? data.detail.map?.(d => d.msg).join(", ") || JSON.stringify(data.detail) : res.statusText);
+  return data;
+}
+async function busy(btn, fn) {
+  const html = btn.innerHTML; btn.disabled = true;
+  btn.innerHTML = `<svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".3" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3"/></svg>Working…`;
+  try { await fn(); } catch (e) { toast(e.message, "error"); } finally { btn.disabled = false; btn.innerHTML = html; }
+}
+
+/* ============================== auth ============================== */
+function authTab(t) {
+  const on = "bg-white shadow-sm dark:bg-zinc-700", off = "text-zinc-500";
+  $("tabLogin").className = `rounded-lg py-2 transition ${t === "login" ? on : off}`;
+  $("tabReg").className = `rounded-lg py-2 transition ${t === "register" ? on : off}`;
+  $("loginForm").classList.toggle("hidden", t !== "login"); $("regForm").classList.toggle("hidden", t !== "register");
+  $("authTitle").textContent = t === "login" ? "Welcome back" : "Create your client account";
+  $("authSub").textContent = t === "login" ? "Sign in to your workspace." : "Upload requirement documents and get an AI estimate in minutes.";
+  $("authErr").innerHTML = "";
+}
+function demo(role) {
+  $("lEmail").value = `${role}@leadassist.local`; $("lPass").value = `${role}123`; login();
+}
+const authError = (e) => $("authErr").innerHTML = `<div class="flex items-center gap-2 rounded-md bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">${icon("alert")}${esc(e.message)}</div>`;
+async function login() {
+  const btn = $("loginBtn"); btn.disabled = true;
+  try { start(await api("/api/login", { method: "POST", body: JSON.stringify({ email: $("lEmail").value, password: $("lPass").value }) })); }
+  catch (e) { authError(e); } finally { btn.disabled = false; }
+}
+async function register() {
+  const btn = $("regBtn"); btn.disabled = true;
+  try { start(await api("/api/register", { method: "POST", body: JSON.stringify({ name: $("rName").value, company: $("rCompany").value, email: $("rEmail").value, password: $("rPass").value }) })); }
+  catch (e) { authError(e); } finally { btn.disabled = false; }
+}
+function start(session) { token = session.token; localStorage.setItem("la_token", token); boot(); }
+async function logout() {
+  try { await fetch("/api/logout", { method: "POST", headers: { Authorization: "Bearer " + token } }); } catch { }
+  token = null; me = null; current = null; localStorage.removeItem("la_token");
+  $("appView").classList.add("hidden"); $("authView").classList.remove("hidden"); authTab("login");
+}
+async function boot() {
+  if (!token) { $("authView").classList.remove("hidden"); authTab("login"); return; }
+  try { me = await api("/api/me"); } catch { return logout(); }
+  $("authView").classList.add("hidden"); $("appView").classList.remove("hidden");
+  $("meName").textContent = me.name; $("meCompany").textContent = me.company; $("avatar").textContent = initials(me.name);
+  $("portalName").textContent = isCompany() ? "Company workspace" : "Client portal";
+  $("newBtnLabel").textContent = isCompany() ? "New analysis" : "New estimate";
+  await refreshLeads();
+  go(isCompany() ? "dashboard" : "home");
+}
+async function refreshLeads() { leads = await api("/api/leads"); }
+
+/* ============================== routing ============================== */
+function navItems() {
+  return isCompany()
+    ? [["dashboard", "grid", "Dashboard"], ["leads", "inbox", "All leads"], ["upload", "upload", "New analysis"]]
+    : [["home", "folder", "My projects"], ["upload", "upload", "New estimate"]];
+}
+function renderNav() {
+  const active = route.page === "lead" ? (isCompany() ? "leads" : "home") : route.page;
+  renderMobileNav(active);
+  const pending = leads.filter(l => l.status === "PENDING_REVIEW").length;
+  $("nav").innerHTML = navItems().map(([page, ic, text]) => `
+    <button onclick="go('${page}')" class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition ${active === page ? "bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300" : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"}">
+      ${icon(ic, "h-5 w-5")}<span class="flex-1 text-left">${text}</span>
+      ${page === "leads" && pending ? `<span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">${pending}</span>` : ""}
+    </button>`).join("");
+}
+function renderMobileNav(active) {
+  $("mobileNav").innerHTML = navItems().map(([page, ic, text]) => `
+    <button onclick="go('${page}')" class="inline-flex shrink-0 items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium ${active === page ? "bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300" : "text-zinc-600 dark:text-zinc-400"}">${icon(ic)}${text}</button>`).join("");
+}
+function setHeader(crumb, title) { $("crumb").textContent = crumb; $("pageTitle").textContent = title; }
+async function go(page, arg) {
+  route = { page, arg }; renderNav(); window.scrollTo({ top: 0 });
+  const main = $("main");
+  if (page === "dashboard") { setHeader("Overview", "Dashboard"); main.innerHTML = viewDashboard(); }
+  else if (page === "leads") { setHeader("Pipeline", "All leads"); main.innerHTML = viewLeads(); renderLeadRows(); }
+  else if (page === "home") { setHeader("Client portal", `Welcome, ${me.name.split(" ")[0]}`); main.innerHTML = viewClientHome(); }
+  else if (page === "upload") { setHeader(isCompany() ? "Pipeline" : "Client portal", isCompany() ? "New analysis" : "New estimate"); main.innerHTML = viewUpload(); bindDropzone(); }
+  else if (page === "lead") {
+    main.innerHTML = `<div class="grid h-64 place-items-center text-zinc-400">Loading…</div>`;
+    try { current = await api(`/api/leads/${arg}`); } catch (e) { toast(e.message, "error"); return go(isCompany() ? "leads" : "home"); }
+    setHeader(isCompany() ? current.client_name : "My project", current.project_title); renderLead();
+  }
+  hydrateIcons(main);
+}
+
+/* ============================== company dashboard ============================== */
+function kpi(label, value, ic, sub = "", tone = "brand") {
+  return `<div class="rounded-lg border border-zinc-200 bg-white p-5 shadow-soft dark:border-zinc-800 dark:bg-zinc-900">
+    <div class="flex items-center justify-between"><p class="text-sm font-medium text-zinc-500">${label}</p>
+    <span class="grid h-9 w-9 place-items-center rounded-md ring-1 ring-inset ${TONE_CLS[tone]}">${icon(ic)}</span></div>
+    <p class="mt-3 text-xl font-semibold">${value}</p><p class="mt-1 text-xs text-zinc-500">${sub}</p></div>`;
+}
+function viewDashboard() {
+  const pending = leads.filter(l => l.status === "PENDING_REVIEW"), approved = leads.filter(l => l.status === "APPROVED");
+  const pipeline = leads.filter(l => l.status !== "REJECTED").reduce((s, l) => s + (l.estimated_cost || 0), 0);
+  const avgFeas = leads.length ? leads.reduce((s, l) => s + (l.feasibility || 0), 0) / leads.length : 0;
+  const cats = ["PRIORITIZE", "PURSUE_WITH_CONDITIONS", "REVIEW", "DEPRIORITIZE"];
+  const catColor = { PRIORITIZE: "#2f7d4f", PURSUE_WITH_CONDITIONS: "#b7791f", REVIEW: "#c05621", DEPRIORITIZE: "#b83232" };
+  const counts = cats.map(c => leads.filter(l => l.category === c).length);
+  const total = leads.length || 1;
+  if (!leads.length) return empty("inbox", "No leads yet", "When clients upload requirement documents, their AI-analysed leads will appear here.",
+    `<button onclick="go('upload')" class="btn-primary mt-6">${icon("upload")}Analyse a document</button>`);
+  return `<div class="animate-fadeUp space-y-6">
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      ${kpi("Total leads", leads.length, "layers", `${approved.length} approved · ${leads.filter(l => l.status === "REJECTED").length} rejected`)}
+      ${kpi("Awaiting review", pending.length, "clock", pending.length ? "Needs your decision" : "All caught up", "amber")}
+      ${kpi("Pipeline value", inrShort(pipeline), "rupee", "Estimated cost of open & approved leads", "emerald")}
+      ${kpi("Avg. feasibility", `${Math.round(avgFeas)}/100`, "trend", "Across all analysed leads", "brand")}
+    </div>
+    <div class="grid gap-6 xl:grid-cols-3">
+      ${card(`${cardTitle("AI recommendation mix", "sparkles")}
+        <div class="flex h-3 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">${cats.map((c, i) => counts[i] ? `<div style="width:${counts[i] / total * 100}%;background:${catColor[c]}" title="${pretty(c)}"></div>` : "").join("")}</div>
+        <div class="mt-5 space-y-3">${cats.map((c, i) => `<div class="flex items-center justify-between text-sm"><span class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full" style="background:${catColor[c]}"></span>${pretty(c)}</span><span class="font-semibold">${counts[i]}</span></div>`).join("")}</div>`)}
+      <div class="xl:col-span-2">${card(`${cardTitle("Needs your review", "clock", `<button onclick="go('leads')" class="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">View all</button>`)}
+        ${pending.length ? `<div class="-mx-2 divide-y divide-zinc-100 dark:divide-zinc-800">${pending.slice(0, 5).map(leadRowCompact).join("")}</div>`
+          : `<div class="py-10 text-center text-sm text-zinc-500">${icon("check", "mx-auto mb-2 h-8 w-8 text-emerald-500")}No leads are waiting for review.</div>`}`)}</div>
+    </div>
+    ${card(`${cardTitle("Top opportunities by AI score", "trend")}
+      <div class="-mx-2 divide-y divide-zinc-100 dark:divide-zinc-800">${[...leads].sort((a, b) => b.score - a.score).slice(0, 5).map(leadRowCompact).join("")}</div>`)}
+  </div>`;
+}
+function leadRowCompact(l) {
+  return `<button onclick="go('lead','${l.id}')" class="flex w-full items-center gap-4 rounded-md px-2 py-3 text-left transition hover:bg-zinc-50 dark:hover:bg-zinc-800/60">
+    ${ring(l.score, 44, 5, "text-xs")}
+    <div class="min-w-0 flex-1"><p class="truncate font-medium">${esc(l.project_title)}</p><p class="truncate text-xs text-zinc-500">${esc(l.client_name)} · ${ago(l.created_at)}</p></div>
+    <div class="hidden text-right sm:block"><p class="text-sm font-semibold">${inrShort(l.estimated_cost)}</p><p class="text-xs text-zinc-500">${l.duration_days} days</p></div>
+    <div class="hidden md:block">${badge(l.category)}</div>${badge(l.status)}</button>`;
+}
+
+/* ============================== company leads list ============================== */
+let leadFilter = "ALL", leadSearch = "";
+function viewLeads() {
+  const tabs = [["ALL", "All"], ["PENDING_REVIEW", "In review"], ["APPROVED", "Approved"], ["REJECTED", "Rejected"]];
+  return `<div class="animate-fadeUp space-y-4">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="inline-flex rounded-md bg-zinc-100 p-1 text-sm font-medium dark:bg-zinc-800/70">${tabs.map(([k, t]) => `
+        <button onclick="leadFilter='${k}';go('leads')" class="rounded-lg px-3 py-1.5 transition ${leadFilter === k ? "bg-white shadow-sm dark:bg-zinc-700" : "text-zinc-500"}">${t}
+        <span class="ml-1 text-xs text-zinc-400">${k === "ALL" ? leads.length : leads.filter(l => l.status === k).length}</span></button>`).join("")}</div>
+      <div class="relative sm:w-72"><span class="pointer-events-none absolute left-3 top-2.5 text-zinc-400">${icon("search")}</span>
+        <input id="leadSearch" value="${esc(leadSearch)}" oninput="leadSearch=this.value;renderLeadRows()" class="input pl-9" placeholder="Search project or client…"></div>
+    </div>
+    <div class="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-soft dark:border-zinc-800 dark:bg-zinc-900">
+      <table class="w-full text-sm"><thead class="bg-zinc-50 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:bg-zinc-800/50">
+        <tr><th class="px-5 py-3">Project</th><th class="hidden px-5 py-3 md:table-cell">AI recommendation</th><th class="px-5 py-3">Score</th>
+        <th class="hidden px-5 py-3 sm:table-cell">Estimate</th><th class="px-5 py-3">Status</th></tr></thead>
+        <tbody id="leadRows" class="divide-y divide-zinc-100 dark:divide-zinc-800"></tbody></table>
+    </div></div>`;
+}
+function renderLeadRows() {
+  const q = leadSearch.toLowerCase();
+  const rows = leads.filter(l => (leadFilter === "ALL" || l.status === leadFilter) && (!q || `${l.project_title} ${l.client_name}`.toLowerCase().includes(q)));
+  $("leadRows").innerHTML = rows.length ? rows.map(l => `
+    <tr onclick="go('lead','${l.id}')" class="cursor-pointer transition hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+      <td class="px-5 py-4"><div class="flex items-center gap-3"><div class="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-zinc-100 text-xs font-bold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">${initials(l.client_name)}</div>
+        <div class="min-w-0"><p class="truncate font-medium">${esc(l.project_title)}</p><p class="truncate text-xs text-zinc-500">${esc(l.client_name)} · ${ago(l.created_at)}${l.comments ? ` · ${l.comments} comment${l.comments > 1 ? "s" : ""}` : ""}</p></div></div></td>
+      <td class="hidden px-5 py-4 md:table-cell">${badge(l.category)}</td>
+      <td class="px-5 py-4">${ring(l.score, 40, 4, "text-[11px]")}</td>
+      <td class="hidden px-5 py-4 sm:table-cell"><p class="font-semibold">${inrShort(l.estimated_cost)}</p><p class="text-xs text-zinc-500">${l.hours} h · ${l.duration_days} days</p></td>
+      <td class="px-5 py-4">${badge(l.status)}</td></tr>`).join("")
+    : `<tr><td colspan="5" class="px-5 py-14 text-center text-sm text-zinc-500">No leads match this view.</td></tr>`;
+}
+
+/* ============================== client home ============================== */
+function viewClientHome() {
+  const statusInfo = { PENDING_REVIEW: "Our team is reviewing your estimate.", APPROVED: "Approved — your proposal is ready.", REJECTED: "Not taken forward — see comments." };
+  return `<div class="animate-fadeUp space-y-6">
+    <div class="flex flex-col gap-4 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900 md:flex-row md:items-center md:justify-between">
+      <div class="max-w-xl"><h2 class="text-lg font-semibold">Request an estimate</h2>
+        <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Upload your requirement documents. We extract the scope, estimate cost and timeline, and list any information still missing. Our team then reviews it.</p></div>
+      <button onclick="go('upload')" class="btn-primary shrink-0">${icon("upload")}Upload documents</button>
+    </div>
+    <div><h2 class="mb-3 font-semibold">Your projects</h2>
+    ${leads.length ? `<div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">${leads.map(l => `
+      <button onclick="go('lead','${l.id}')" class="group rounded-lg border border-zinc-200 bg-white p-5 text-left shadow-soft transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-brand-700">
+        <div class="flex items-start justify-between gap-3"><span class="grid h-10 w-10 place-items-center rounded-md bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-300">${icon("file", "h-5 w-5")}</span>${badge(l.status)}</div>
+        <h3 class="mt-4 font-semibold group-hover:text-brand-600 dark:group-hover:text-brand-400">${esc(l.project_title)}</h3>
+        <p class="mt-1 text-xs text-zinc-500">${esc(l.project_type || "Software project")} · ${ago(l.created_at)}</p>
+        <div class="mt-4 grid grid-cols-3 gap-2 border-t border-zinc-100 pt-4 text-center dark:border-zinc-800">
+          <div><p class="text-sm font-bold">${inrShort(l.estimated_cost)}</p><p class="text-[11px] text-zinc-500">Estimate</p></div>
+          <div><p class="text-sm font-bold">${l.duration_days}d</p><p class="text-[11px] text-zinc-500">Duration</p></div>
+          <div><p class="text-sm font-bold">${l.hours}h</p><p class="text-[11px] text-zinc-500">Effort</p></div></div>
+        <p class="mt-4 flex items-center gap-1.5 text-xs text-zinc-500">${icon("clock", "h-3.5 w-3.5")}${statusInfo[l.status] || ""}</p>
+      </button>`).join("")}</div>`
+      : empty("folder", "No projects yet", "Upload your first requirement document to receive an AI estimate.", `<button onclick="go('upload')" class="btn-primary mt-6">${icon("upload")}Upload documents</button>`)}</div>
+  </div>`;
+}
+
+/* ============================== upload ============================== */
+let pickedFiles = [];
+function viewUpload() {
+  pickedFiles = [];
+  return `<div class="mx-auto max-w-3xl animate-fadeUp">${card(`
+    <div class="mb-6"><h2 class="text-xl font-bold tracking-tight">${isCompany() ? "Analyse a client's documents" : "Get an AI estimate"}</h2>
+    <p class="mt-1 text-sm text-zinc-500">Upload requirement documents (PDF, DOCX, TXT or MD). Our AI reads them and prepares the scope, estimate and feasibility.</p></div>
+    <div class="space-y-5">
+      ${isCompany() ? `<div><label class="mb-1.5 block text-sm font-medium" for="uClient">Client name</label><input id="uClient" class="input" placeholder="e.g. MediCare Clinics"></div>` : ""}
+      <div><label class="mb-1.5 block text-sm font-medium" for="uTitle">Project title</label><input id="uTitle" class="input" placeholder="e.g. Clinic Appointment Booking Portal"></div>
+      <div class="grid gap-4 sm:grid-cols-3">
+        <div><label class="mb-1.5 block text-sm font-medium" for="uBudgetMin">Budget from <span class="font-normal text-zinc-400">(optional)</span></label>
+          <div class="relative"><span class="pointer-events-none absolute left-3 top-2.5 text-sm text-zinc-400">₹</span>
+          <input id="uBudgetMin" type="number" min="0" step="0.5" inputmode="decimal" class="input h-10 pl-7 pr-12" placeholder="10">
+          <span class="pointer-events-none absolute right-3 top-2.5 text-sm text-zinc-400">lakh</span></div></div>
+        <div><label class="mb-1.5 block text-sm font-medium" for="uBudgetMax">Budget to <span class="font-normal text-zinc-400">(optional)</span></label>
+          <div class="relative"><span class="pointer-events-none absolute left-3 top-2.5 text-sm text-zinc-400">₹</span>
+          <input id="uBudgetMax" type="number" min="0" step="0.5" inputmode="decimal" class="input h-10 pl-7 pr-12" placeholder="15">
+          <span class="pointer-events-none absolute right-3 top-2.5 text-sm text-zinc-400">lakh</span></div></div>
+        <div><label class="mb-1.5 block text-sm font-medium" for="uDelivery">Expected delivery <span class="font-normal text-zinc-400">(optional)</span></label>
+          <input id="uDelivery" type="date" class="input h-10"></div>
+      </div>
+      <div><label class="mb-1.5 block text-sm font-medium">Documents</label>
+        <label id="dropzone" for="uFiles" class="dropzone flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-zinc-300 px-6 py-10 text-center transition hover:border-brand-400 hover:bg-brand-50/40 dark:border-zinc-700 dark:hover:bg-brand-500/5">
+          <span class="grid h-12 w-12 place-items-center rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-300">${icon("upload", "h-6 w-6")}</span>
+          <p class="mt-3 text-sm"><span class="font-semibold text-brand-600 dark:text-brand-400">Click to upload</span> or drag and drop</p>
+          <p class="mt-1 text-xs text-zinc-500">PDF, DOCX, TXT, MD · up to 5 MB each · multiple files allowed</p>
+          <input id="uFiles" type="file" multiple accept=".pdf,.docx,.txt,.md" class="sr-only" onchange="addFiles(this.files)">
+        </label>
+        <div id="fileList" class="mt-3 space-y-2"></div></div>
+      <div><label class="mb-1.5 block text-sm font-medium" for="uNotes">Additional notes <span class="font-normal text-zinc-400">(optional)</span></label>
+        <textarea id="uNotes" rows="3" class="input" placeholder="Anything not in the documents — budget, deadline, priorities…"></textarea></div>
+      <div class="flex items-center justify-between gap-4 border-t border-zinc-100 pt-5 dark:border-zinc-800">
+        <p class="flex items-center gap-2 text-xs text-zinc-500">${icon("shield")}Your documents are only visible to you and our team.</p>
+        <button id="uploadBtn" onclick="upload()" class="btn-primary shrink-0 whitespace-nowrap">${icon("sparkles")}Analyse with AI</button></div>
+    </div>`)}</div>`;
+}
+function bindDropzone() {
+  const dz = $("dropzone"); if (!dz) return;
+  const tomorrow = new Date(Date.now() + 864e5); $("uDelivery").min = tomorrow.toISOString().slice(0, 10);
+  ["dragenter", "dragover"].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.add("drag"); }));
+  ["dragleave", "drop"].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.remove("drag"); }));
+  dz.addEventListener("drop", ev => addFiles(ev.dataTransfer.files));
+}
+function addFiles(list) {
+  for (const f of list) if (!pickedFiles.some(p => p.name === f.name && p.size === f.size)) pickedFiles.push(f);
+  $("uFiles").value = ""; renderFiles();
+}
+function removeFile(i) { pickedFiles.splice(i, 1); renderFiles(); }
+function renderFiles() {
+  $("fileList").innerHTML = pickedFiles.map((f, i) => `
+    <div class="flex items-center gap-3 rounded-md border border-zinc-200 px-3 py-2.5 dark:border-zinc-700">
+      <span class="grid h-9 w-9 place-items-center rounded-lg bg-rose-50 text-[10px] font-bold uppercase text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">${esc(f.name.split(".").pop())}</span>
+      <div class="min-w-0 flex-1"><p class="truncate text-sm font-medium">${esc(f.name)}</p><p class="text-xs text-zinc-500">${(f.size / 1024).toFixed(0)} KB</p></div>
+      <button onclick="removeFile(${i})" class="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800" title="Remove">${icon("x")}</button></div>`).join("");
+}
+const STEPS = ["Reading documents", "Extracting requirements", "Estimating effort & cost", "Scoring feasibility", "Preparing recommendation"];
+function showProgress() {
+  let step = 0;
+  const draw = () => $("progressSteps").innerHTML = STEPS.map((s, i) => `
+    <li class="flex items-center gap-3 text-sm ${i > step ? "text-zinc-400" : ""}">
+      <span class="grid h-6 w-6 place-items-center rounded-full ${i < step ? "bg-emerald-500 text-white" : i === step ? "bg-brand-600 text-white" : "bg-zinc-100 dark:bg-zinc-800"}">
+      ${i < step ? icon("check", "h-3.5 w-3.5") : i === step ? '<span class="h-2 w-2 animate-pulse rounded-full bg-white"></span>' : ""}</span>${s}</li>`).join("");
+  draw(); $("progress").classList.replace("hidden", "grid");
+  const timer = setInterval(() => { if (step < STEPS.length - 1) { step++; draw(); } }, 2500);
+  return () => { clearInterval(timer); $("progress").classList.replace("grid", "hidden"); };
+}
+async function upload() {
+  if (!$("uTitle").value.trim()) return toast("Please enter a project title.", "error");
+  if (!pickedFiles.length && !$("uNotes").value.trim()) return toast("Upload at least one document or add notes.", "error");
+  const bMin = parseFloat($("uBudgetMin").value), bMax = parseFloat($("uBudgetMax").value);
+  if (bMin < 0 || bMax < 0) return toast("Budget cannot be negative.", "error");
+  if (bMin && bMax && bMin > bMax) return toast("'Budget from' cannot be more than 'Budget to'.", "error");
+  if ($("uDelivery").value && $("uDelivery").value <= new Date().toISOString().slice(0, 10)) return toast("Expected delivery must be a future date.", "error");
+  const form = new FormData();
+  form.append("project_title", $("uTitle").value); form.append("notes", $("uNotes").value);
+  form.append("budget_min_lakh", $("uBudgetMin").value); form.append("budget_max_lakh", $("uBudgetMax").value);
+  form.append("delivery_date", $("uDelivery").value);
+  if (isCompany()) form.append("client_name", $("uClient").value);
+  pickedFiles.forEach(f => form.append("files", f));
+  const stop = showProgress();
+  try {
+    const lead = await api("/api/leads", { method: "POST", body: form });
+    stop(); await refreshLeads(); toast("Analysis complete.");
+    go("lead", lead.id);
+  } catch (e) { stop(); toast(e.message, "error"); }
+}
+
+/* ============================== lead detail ============================== */
+let leadTab = "overview";
+function renderLead() {
+  const l = current, x = l.extraction, e = l.estimate, f = l.feasibility, r = l.recommendation, company = isCompany();
+  const tabs = [["overview", "Overview"], ["requirements", "Requirements"], ...(company ? [["scope", "Scope changes"]] : []),
+    ...(company || l.proposal ? [["proposal", "Proposal"]] : []), ["discussion", `Discussion${l.comments.length ? ` (${l.comments.length})` : ""}`]];
+  if (!tabs.some(t => t[0] === leadTab)) leadTab = "overview";
+  $("main").innerHTML = `<div class="animate-fadeUp space-y-6">
+    <button onclick="go('${company ? "leads" : "home"}')" class="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200">${icon("back")}Back</button>
+    <div class="rounded-lg border border-zinc-200 bg-white p-6 shadow-soft dark:border-zinc-800 dark:bg-zinc-900">
+      <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div class="min-w-0"><div class="flex flex-wrap items-center gap-2">${badge(l.status)}${company ? badge(r.category) : ""}<span class="text-xs text-zinc-500">${esc(x.project_type || "")}</span></div>
+          <h2 class="mt-2 text-xl font-semibold">${esc(l.project_title)}</h2>
+          <p class="mt-1 text-sm text-zinc-500">${esc(l.client_name)} · submitted by ${esc(l.submitted_by)} · ${new Date(l.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</p>
+          <div class="mt-3 flex flex-wrap gap-2">${(l.documents.length ? l.documents : ["Notes only"]).map(d => `<span class="inline-flex items-center gap-1.5 rounded-lg bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">${icon("file", "h-3.5 w-3.5")}${esc(d)}</span>`).join("")}</div></div>
+        <div class="grid shrink-0 grid-cols-2 gap-3 sm:grid-cols-4 md:w-[460px]">
+          ${miniStat("Estimate", inrShort(e.cost))}${miniStat("Effort", `${e.hours} h`)}${miniStat("Duration", `${e.duration_days} d`)}${miniStat("Team", e.team_size)}</div>
+      </div>
+      <p class="mt-5 rounded-md bg-zinc-50 p-4 text-sm leading-relaxed text-zinc-600 dark:bg-zinc-800/50 dark:text-zinc-300"><span class="font-semibold text-zinc-800 dark:text-zinc-100">AI summary · </span>${esc(x.summary)}</p>
+    </div>
+    <div class="grid gap-6 xl:grid-cols-3">
+      <div class="space-y-6 xl:col-span-2">
+        <div class="flex gap-1 overflow-x-auto border-b border-zinc-200 dark:border-zinc-800">${tabs.map(([k, t]) => `
+          <button onclick="leadTab='${k}';renderLead()" class="whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition ${leadTab === k ? "border-brand-600 text-brand-700 dark:text-brand-300" : "border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"}">${t}</button>`).join("")}</div>
+        <div id="tabBody">${tabBody()}</div>
+      </div>
+      <div class="space-y-6">${company ? decisionPanel() : clientStatusPanel()}</div>
+    </div></div>`;
+  hydrateIcons($("main"));
+}
+const fmtDate = (iso) => new Date(iso + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+function budgetText(l) {
+  const ci = l.client_inputs || {};
+  if (ci.budget_min && ci.budget_max) return `${inrShort(ci.budget_min)} – ${inrShort(ci.budget_max)}`;
+  if (ci.budget_max) return `Up to ${inrShort(ci.budget_max)}`;
+  if (ci.budget_min) return `From ${inrShort(ci.budget_min)}`;
+  return l.extraction.budget_inr ? inr(l.extraction.budget_inr) : "—";
+}
+function timelineText(l) {
+  const ci = l.client_inputs || {};
+  if (ci.delivery_date) return fmtDate(ci.delivery_date);
+  return l.extraction.timeline_days ? `${l.extraction.timeline_days} days` : "—";
+}
+const miniStat = (label, value) => `<div class="rounded-md border border-zinc-200 px-3 py-2.5 dark:border-zinc-800"><p class="text-[11px] font-medium uppercase tracking-wider text-zinc-500">${label}</p><p class="mt-0.5 text-lg font-bold">${value}</p></div>`;
+
+function tabBody() {
+  const l = current, x = l.extraction, e = l.estimate, f = l.feasibility;
+  if (leadTab === "overview") {
+    const parts = [["Base setup", e.breakdown.base], ["Features", e.breakdown.features], ["Integrations", e.breakdown.integrations], ["QA, PM & deployment", e.breakdown.overhead_35pct]];
+    const max = Math.max(...parts.map(p => p[1]), 1);
+    return `<div class="space-y-6">
+      ${card(`${cardTitle("Feasibility", "shield", `<span class="text-xs text-zinc-500">Higher is better</span>`)}
+        <div class="flex flex-col gap-6 sm:flex-row sm:items-center">
+          <div class="flex flex-col items-center">${ring(f.overall, 120, 10, "text-3xl")}<p class="mt-2 text-sm font-medium text-zinc-500">Overall</p></div>
+          <div class="flex-1 space-y-4">${[["Technical", f.technical], ["Budget fit", f.budget], ["Timeline fit", f.timeline]].map(([n, v]) => `
+            <div><div class="mb-1.5 flex justify-between text-sm"><span class="font-medium">${n}</span><span class="font-semibold">${Math.round(v)}/100</span></div>${bar(v)}</div>`).join("")}</div></div>
+        ${f.notes.length ? `<div class="mt-5 space-y-2">${f.notes.map(n => `<p class="flex items-start gap-2 text-sm text-zinc-600 dark:text-zinc-400">${icon("arrow", "mt-0.5 h-4 w-4 text-brand-500")}${esc(n)}</p>`).join("")}</div>` : ""}`)}
+      ${card(`${cardTitle("Effort breakdown", "layers", `<span class="text-xs text-zinc-500">${inr(e.cost)} total</span>`)}
+        <div class="space-y-4">${parts.map(([n, v]) => `<div><div class="mb-1.5 flex justify-between text-sm"><span class="text-zinc-600 dark:text-zinc-400">${n}</span><span class="font-semibold">${v} h</span></div>
+          <div class="h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800"><div class="h-full rounded-full bg-brand-600 dark:bg-brand-400" style="width:${v / max * 100}%"></div></div></div>`).join("")}</div>
+        <p class="mt-5 rounded-md bg-brand-50/60 p-3 text-xs text-brand-800 dark:bg-brand-500/10 dark:text-zinc-500">Baseline estimation formula (not a trained model): hours × blended hourly rate. Final pricing is confirmed after review.</p>`)}
+    </div>`;
+  }
+  if (leadTab === "requirements") {
+    const cx = { low: 0, medium: 0, high: 0 }; x.features.forEach(ft => cx[ft.complexity?.toLowerCase()] = (cx[ft.complexity?.toLowerCase()] || 0) + 1);
+    return `<div class="space-y-6">
+      ${card(`${cardTitle(`Features (${x.features.length})`, "layers", `<div class="flex gap-2 text-xs">${["low", "medium", "high"].map(k => cx[k] ? badge(k, `${cx[k]} ${k}`) : "").join("")}</div>`)}
+        <div class="grid gap-2 sm:grid-cols-2">${x.features.map(ft => `<div class="flex items-center justify-between gap-3 rounded-md border border-zinc-200 px-3.5 py-2.5 dark:border-zinc-800"><span class="text-sm font-medium">${esc(ft.name)}</span>${badge(ft.complexity?.toLowerCase(), pretty(ft.complexity))}</div>`).join("")}</div>`)}
+      <div class="grid gap-6 md:grid-cols-2">
+        ${card(`${cardTitle("Integrations", "plug")}${chips(x.integrations, "brand")}`)}
+        ${card(`${cardTitle("Technologies", "layers")}${chips(x.technologies, "slate")}`)}
+        ${card(`${cardTitle("Client budget", "rupee")}<p class="text-2xl font-bold">${budgetText(l)}</p>
+          <p class="mt-1 text-xs text-zinc-500">${l.client_inputs?.budget_min || l.client_inputs?.budget_max ? "Entered by the client" : "From the documents"}</p>`)}
+        ${card(`${cardTitle("Expected delivery", "calendar")}<p class="text-2xl font-bold">${timelineText(l)}</p>
+          <p class="mt-1 text-xs text-zinc-500">${l.client_inputs?.delivery_date ? `Entered by the client · ${x.timeline_days} days from submission` : "From the documents"}</p>`)}
+      </div>
+      ${card(`${cardTitle("Information still needed", "alert")}${x.missing_fields.length ? `<div class="flex flex-wrap gap-2">${x.missing_fields.map(m => `<span class="rounded-lg bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-300">${esc(m)}</span>`).join("")}</div>` : `<p class="text-sm text-zinc-500">Nothing critical is missing.</p>`}`)}
+      ${card(`${cardTitle("Questions to clarify", "question")}${x.follow_up_questions.length ? `<ol class="space-y-3">${x.follow_up_questions.map((q, i) => `<li class="flex gap-3 text-sm"><span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-brand-50 text-xs font-bold text-brand-700 dark:bg-brand-500/10 dark:text-brand-300">${i + 1}</span><span class="pt-0.5">${esc(q)}</span></li>`).join("")}</ol>` : `<p class="text-sm text-zinc-500">No open questions.</p>`}`)}
+      ${isCompany() && x.risks.length ? card(`${cardTitle("Risks", "alert")}<ul class="space-y-2">${x.risks.map(rk => `<li class="flex items-start gap-2 text-sm">${icon("alert", "mt-0.5 h-4 w-4 text-rose-500")}${esc(rk)}</li>`).join("")}</ul>`) : ""}
+    </div>`;
+  }
+  if (leadTab === "scope") {
+    return `<div class="space-y-6">
+      ${card(`${cardTitle("Analyse a change request", "sparkles")}
+        <textarea id="scopeText" rows="3" class="input" placeholder="e.g. Add a loyalty/rewards system with points, membership tiers and referral tracking."></textarea>
+        <div class="mt-3 flex justify-end"><button id="scopeBtn" onclick="submitScope(this)" class="btn-primary">${icon("sparkles")}Analyse impact</button></div>`)}
+      ${l.scope_changes.length ? l.scope_changes.map(c => card(`
+        <div class="flex flex-wrap items-start justify-between gap-3"><div class="flex gap-2">${badge(c.severity, `${pretty(c.severity)} impact`)}${badge(c.status)}</div><span class="text-xs text-zinc-500">${ago(c.created_at)}</span></div>
+        <p class="mt-3 text-sm text-zinc-600 dark:text-zinc-300">“${esc(c.change_text)}”</p>
+        <div class="mt-4 grid grid-cols-3 gap-3">${miniStat("Extra cost", "+" + inrShort(c.additional_cost))}${miniStat("Extra effort", `+${c.additional_hours} h`)}${miniStat("Extra time", `+${c.additional_days} d`)}</div>
+        <div class="mt-4 grid gap-4 sm:grid-cols-3">
+          <div><p class="mb-2 text-xs font-semibold uppercase tracking-wider text-emerald-600">Added</p>${chips(c.diff.added.map(a => `${a.name} · ${a.complexity}`), "emerald")}</div>
+          <div><p class="mb-2 text-xs font-semibold uppercase tracking-wider text-rose-600">Removed</p>${chips(c.diff.removed, "rose")}</div>
+          <div><p class="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-600">Modified</p>${chips(c.diff.modified.map(m => m.name), "amber")}</div></div>
+        ${c.status === "PENDING" ? `<div class="mt-5 flex justify-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+          <button onclick="decideScope(this,'${c.id}','reject')" class="btn-ghost text-rose-600">${icon("x")}Reject</button>
+          <button onclick="decideScope(this,'${c.id}','approve')" class="btn-success">${icon("check")}Approve & update estimate</button></div>` : ""}`)).join("")
+        : empty("layers", "No scope changes yet", "Paste a client's change request above to see its cost, effort and timeline impact.")}
+    </div>`;
+  }
+  if (leadTab === "proposal") {
+    return card(`${cardTitle("Proposal", "file", l.proposal ? `<button onclick="downloadProposal()" class="btn-ghost">${icon("download")}Download</button>` : "")}
+      ${isCompany() ? `<div class="mb-5 flex flex-col gap-3 rounded-md bg-zinc-50 p-4 dark:bg-zinc-800/50 sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-sm text-zinc-600 dark:text-zinc-400">AI drafts the proposal using the backend's estimate. The client can see it once the lead is approved.</p>
+        <button onclick="makeProposal(this)" class="btn-primary shrink-0">${icon("sparkles")}${l.proposal ? "Regenerate" : "Generate proposal"}</button></div>` : ""}
+      ${l.proposal ? `<article class="prose-proposal text-sm text-zinc-700 dark:text-zinc-300">${DOMPurify.sanitize(marked.parse(l.proposal))}</article>`
+        : `<p class="py-8 text-center text-sm text-zinc-500">No proposal generated yet.</p>`}`);
+  }
+  if (leadTab === "discussion") {
+    return card(`${cardTitle("Discussion", "message")}
+      <div class="space-y-4">${l.comments.length ? l.comments.map(c => {
+        const mine = c.author === me.name;
+        return `<div class="flex gap-3 ${mine ? "flex-row-reverse" : ""}">
+          <div class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-bold ${c.role === "company" ? "bg-brand-100 text-brand-700 dark:bg-brand-900/60 dark:text-zinc-500" : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-200"}">${initials(c.author)}</div>
+          <div class="max-w-[80%] ${mine ? "text-right" : ""}"><p class="text-xs text-zinc-500"><b class="text-zinc-700 dark:text-zinc-300">${esc(c.author)}</b> · ${c.role === "company" ? "Company" : "Client"} · ${ago(c.at)}</p>
+          <div class="mt-1 inline-block whitespace-pre-wrap rounded-lg px-4 py-2.5 text-left text-sm ${mine ? "rounded-tr-sm bg-brand-600 text-white" : "rounded-tl-sm bg-zinc-100 dark:bg-zinc-800"}">${esc(c.text)}</div></div></div>`;
+      }).join("") : `<p class="py-6 text-center text-sm text-zinc-500">No messages yet. Start the conversation below.</p>`}</div>
+      <div class="mt-6 flex items-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+        <textarea id="commentText" rows="2" class="input flex-1" placeholder="Write a message…" onkeydown="if(event.key==='Enter'&&(event.metaKey||event.ctrlKey))addComment($('commentBtn'))"></textarea>
+        <button id="commentBtn" onclick="addComment(this)" class="btn-primary h-[42px]">${icon("send")}Send</button></div>`);
+  }
+  return "";
+}
+
+function decisionPanel() {
+  const l = current, r = l.recommendation;
+  const decided = l.status !== "PENDING_REVIEW";
+  return `<div class="space-y-6 xl:sticky xl:top-24">
+    ${card(`${cardTitle("AI recommendation", "sparkles")}
+      <div class="flex items-center gap-4">${ring(r.score, 84, 8, "text-xl")}<div>${badge(r.category)}<p class="mt-2 text-xs text-zinc-500">Opportunity score out of 100</p></div></div>
+      <div class="mt-5 grid grid-cols-2 gap-3">${miniStat("Revenue", inrShort(r.expected_revenue))}${miniStat("Delivery cost", inrShort(r.delivery_cost))}
+        ${miniStat("Margin", `${(r.profit_margin * 100).toFixed(0)}%`)}${miniStat("Clarity", `${r.clarity_score}/100`)}</div>
+      ${r.cap_reason ? `<p class="mt-4 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900 dark:bg-amber-500/10 dark:text-amber-300">${icon("alert","mt-0.5 h-3.5 w-3.5")}${esc(r.cap_reason)}</p>` : ""}
+      <div class="mt-5"><p class="mb-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-500">Why</p><p class="text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">${esc(r.rationale)}</p></div>`)}
+    ${card(`${cardTitle("Your decision", "check")}
+      ${decided ? `<div class="mb-4 flex items-center gap-2 rounded-md ${l.status === "APPROVED" ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300" : "bg-rose-50 text-rose-800 dark:bg-rose-500/10 dark:text-rose-300"} px-4 py-3 text-sm font-medium">${icon(l.status === "APPROVED" ? "check" : "x")}This lead was ${l.status.toLowerCase()}. You can change the decision below.</div>` : ""}
+      <label for="reviewComment" class="mb-1.5 block text-sm font-medium">Comment to the client <span class="font-normal text-zinc-400">(optional)</span></label>
+      <textarea id="reviewComment" rows="3" class="input" placeholder="e.g. Approved — we'll share the proposal and kickoff plan."></textarea>
+      <div class="mt-4 grid grid-cols-2 gap-2">
+        <button onclick="reviewLead(this,'reject')" class="btn-danger">${icon("x")}Reject</button>
+        <button onclick="reviewLead(this,'approve')" class="btn-success">${icon("check")}Approve</button></div>`)}
+  </div>`;
+}
+function clientStatusPanel() {
+  const l = current;
+  const steps = [["Documents uploaded", true], ["AI estimate ready", true], ["Team review", l.status !== "PENDING_REVIEW"], [l.status === "REJECTED" ? "Not taken forward" : "Proposal shared", l.status === "APPROVED" && !!l.proposal]];
+  return `<div class="space-y-6 xl:sticky xl:top-24">
+    ${card(`${cardTitle("Status", "clock")}
+      <ol class="relative space-y-5 border-l-2 border-zinc-200 pl-6 dark:border-zinc-800">${steps.map(([s, done], i) => `
+        <li class="relative"><span class="absolute -left-[33px] grid h-5 w-5 place-items-center rounded-full ring-4 ring-white dark:ring-zinc-900 ${done ? (l.status === "REJECTED" && i === 3 ? "bg-rose-500" : "bg-emerald-500") + " text-white" : "bg-zinc-200 dark:bg-zinc-700"}">${done ? icon("check", "h-3 w-3") : ""}</span>
+        <p class="text-sm font-medium ${done ? "" : "text-zinc-400"}">${s}</p></li>`).join("")}</ol>
+      <div class="mt-5">${badge(l.status)}</div>`)}
+    ${card(`${cardTitle("Your estimate", "rupee")}<p class="text-3xl font-bold tracking-tight">${inr(l.estimate.cost)}</p>
+      <p class="mt-1 text-sm text-zinc-500">${l.estimate.hours} hours · ${l.estimate.duration_days} days · team of ${l.estimate.team_size}</p>
+      ${(l.client_inputs?.budget_min || l.client_inputs?.budget_max || l.client_inputs?.delivery_date) ? `
+      <dl class="mt-4 space-y-2 border-t border-zinc-100 pt-4 text-sm dark:border-zinc-800">
+        ${l.client_inputs.budget_min || l.client_inputs.budget_max ? `<div class="flex justify-between gap-3"><dt class="text-zinc-500">Your budget</dt><dd class="font-medium">${budgetText(l)}</dd></div>` : ""}
+        ${l.client_inputs.delivery_date ? `<div class="flex justify-between gap-3"><dt class="text-zinc-500">Your target date</dt><dd class="font-medium">${fmtDate(l.client_inputs.delivery_date)}</dd></div>` : ""}
+      </dl>` : ""}
+      <p class="mt-4 text-xs text-zinc-500">Indicative estimate generated by AI from your documents. Answering the open questions improves accuracy.</p>
+      <button onclick="leadTab='discussion';renderLead()" class="btn-ghost mt-4 w-full">${icon("message")}Message the team</button>`)}
+  </div>`;
+}
+
+/* ============================== actions ============================== */
+async function reloadCurrent(data) { current = data; await refreshLeads(); renderNav(); renderLead(); }
+function reviewLead(btn, decision) {
+  busy(btn, async () => { await reloadCurrent(await api(`/api/leads/${current.id}/review`, { method: "POST", body: JSON.stringify({ decision, comment: $("reviewComment").value }) })); toast(`Lead ${decision === "approve" ? "approved" : "rejected"}.`); });
+}
+function addComment(btn) {
+  const text = $("commentText").value.trim(); if (!text) return;
+  busy(btn, async () => { leadTab = "discussion"; await reloadCurrent(await api(`/api/leads/${current.id}/comments`, { method: "POST", body: JSON.stringify({ text }) })); });
+}
+function submitScope(btn) {
+  const text = $("scopeText").value.trim(); if (!text) return toast("Describe the change request first.", "error");
+  busy(btn, async () => { await api(`/api/leads/${current.id}/scope-change`, { method: "POST", body: JSON.stringify({ change_text: text }) }); await reloadCurrent(await api(`/api/leads/${current.id}`)); toast("Change impact analysed."); });
+}
+function decideScope(btn, id, decision) {
+  busy(btn, async () => { await reloadCurrent(await api(`/api/leads/${current.id}/scope-change/${id}/${decision}`, { method: "POST" })); toast(decision === "approve" ? "Change approved — estimate updated." : "Change rejected."); });
+}
+function makeProposal(btn) {
+  busy(btn, async () => { await reloadCurrent(await api(`/api/leads/${current.id}/proposal`, { method: "POST" })); toast("Proposal ready."); });
+}
+function downloadProposal() {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([current.proposal], { type: "text/markdown" }));
+  a.download = `${current.project_title.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-proposal.md`; a.click();
+}
+
+/* ============================== init ============================== */
+fetch("/api/health").then(r => r.json()).then(h => {
+  if (h.gemini_key_configured) return;
+  const pill = $("aiPill");
+  pill.className = "hidden items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 dark:border-red-900 dark:bg-red-500/10 dark:text-red-300 sm:inline-flex";
+  pill.innerHTML = `${icon("alert", "h-3.5 w-3.5")}AI key not configured`;
+}).catch(() => { });
+hydrateIcons();
+boot();
+</script>
+<style type="text/tailwindcss">
+  @layer components {
+    .input { @apply w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none transition placeholder:text-zinc-400 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-brand-400; }
+    .btn-primary { @apply inline-flex items-center justify-center gap-2 rounded-md bg-brand-700 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-600/40 focus:ring-offset-1 disabled:cursor-wait disabled:opacity-60 dark:bg-brand-500 dark:hover:bg-brand-400 dark:text-zinc-950; }
+    .btn-success { @apply inline-flex items-center justify-center gap-2 rounded-md bg-[#2f7d4f] px-3.5 py-2 text-sm font-medium text-white transition hover:bg-[#276a43] focus:outline-none focus:ring-2 focus:ring-[#2f7d4f]/40 disabled:opacity-60; }
+    .btn-danger { @apply inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3.5 py-2 text-sm font-medium text-[#b83232] transition hover:border-[#b83232] hover:bg-red-50 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-red-950/40; }
+    .btn-ghost { @apply inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800; }
+  }
+</style>
+</body>
+</html>
